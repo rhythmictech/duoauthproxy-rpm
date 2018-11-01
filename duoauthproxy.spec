@@ -1,5 +1,5 @@
 Name:           duoauthproxy
-Version:        2.4.12
+Version:        2.10.1
 Release:        1%{?dist}
 Summary:        Duo Authentication Proxy
 
@@ -7,15 +7,15 @@ Group:          System Environment/Daemons
 License:        Commercial
 URL:            https://www.duosecurity.com/docs/ldap
 Source0:        https://dl.duosecurity.com/duoauthproxy-%{version}-src.tgz
-Source1:        authproxy.sample-openldap.cfg
-Patch0:         non-interactive-install.patch
-Patch1:         allow-anon-bind.patch
 
 %define svc_user    nobody
 %define install_dir /opt/%{name}
+# %define duosrcdir %{name}-%{version}-src
+%define duosrcdir duoauthproxy-2.10.1-6c06a11-src
 %global debug_package %{nil}
 
 BuildRequires: python-devel
+BuildRequires: libffi-devel
 BuildRequires: openssl-devel
 BuildRequires: perl
 
@@ -27,12 +27,7 @@ Requires: chkconfig
 Proxies RADIUS or LDAP authentication attempts and adds Duo authentication
 
 %prep
-%setup -q -n %{name}-%{version}-src
-%patch0 -p1
-%patch1 -p1
-
-# Sample config
-cp -p %{SOURCE1} conf
+%setup -q -n %{duosrcdir}
 
 # Set username in authproxyctl
 perl -p -i -e "s/^USER_DEFAULT = None$/USER_DEFAULT = '%{svc_user}'/g" pkgs/duoauthproxy/scripts/authproxyctl
@@ -82,15 +77,13 @@ fi
 %{install_dir}/bin
 %config %{install_dir}/conf/ca-bundle.crt
 %config(noreplace) %attr(640,%{svc_user},%{svc_user}) %{install_dir}/conf/authproxy.cfg
-%{install_dir}/conf/authproxy.sample-openldap.cfg
 %{install_dir}/doc
-%{install_dir}/include
-%{install_dir}/lib
-%{install_dir}/lib64
+%{install_dir}/usr
 %attr(750,%{svc_user},%{svc_user}) %{install_dir}/log
 %attr(750,%{svc_user},%{svc_user}) %{install_dir}/run
 %{_initddir}/%{name}
 
 %changelog
+* Thu Nov 01 2018 Steven Dickenson <> 2.10.1-1
 * Fri Oct 16 2015 John Thiltges <> 2.4.12-1
 - Initial package
